@@ -4,20 +4,23 @@ import com.cst438.domain.*;
 import com.cst438.dto.AssignmentStudentDTO;
 import com.cst438.dto.EnrollmentDTO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 public class StudentController {
 
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 
+    @Autowired
+    private AssignmentRepository assignmentRepository;
+
+    @Autowired
+    private GradeRepository gradeRepository;
 
     /**
      students lists there enrollments given year and semester value
@@ -31,10 +34,31 @@ public class StudentController {
            @RequestParam("studentId") int studentId) {
 
 
-     // TODO
-	 //  hint: use enrollment repository method findByYearAndSemesterOrderByCourseId
-     //  remove the following line when done
-       return null;
+    List<Enrollment> enrollments = enrollmentRepository.findByYearAndSemesterOrderByCourseId(year, semester, studentId);
+
+    List<EnrollmentDTO> result = new ArrayList<>();
+
+    for (Enrollment e : enrollments) {
+        EnrollmentDTO dto = new EnrollmentDTO(
+            e.getEnrollmentId(),             
+            e.getGrade(),                    
+            e.getStudent().getId(),         
+            e.getStudent().getName(),     
+            e.getStudent().getEmail(),      
+            e.getSection().getCourse().getCourseId(),   
+            e.getSection().getCourse().getTitle(),    
+            e.getSection().getSecId(),   
+            e.getSection().getSectionNo(),  
+            e.getSection().getBuilding(),    
+            e.getSection().getRoom(),  
+            e.getSection().getTimes(), 
+            e.getSection().getCourse().getCredits(),
+            e.getSection().getTerm().getYear(),  
+            e.getSection().getTerm().getSemester()
+        );
+        result.add(dto);
+    }
+    return result;
    }
 
     /**
@@ -48,13 +72,24 @@ public class StudentController {
             @RequestParam("year") int year,
             @RequestParam("semester") String semester) {
 
-        // TODO remove the following line when done
+        List<Assignment> assignments = assignmentRepository.findByStudentIdAndYearAndSemesterOrderByDueDate(studentId, year, semester);
+        List<AssignmentStudentDTO> assignmentDTOs = new ArrayList<>();
 
-        // return a list of assignments and (if they exist) the assignment grade
-        //  for all sections that the student is enrolled for the given year and semester
-        //  hint: use the assignment repository method findByStudentIdAndYearAndSemesterOrderByDueDate
+        for (Assignment assignment : assignments) {
+            Grade grade = gradeRepository.findByEnrollmentIdAndAssignmentId(
+                    assignment.getSection().getSectionNo(), assignment.getAssignmentId());
+            Integer score = (grade != null) ? grade.getScore() : null;
 
-        return null;
+            assignmentDTOs.add(new AssignmentStudentDTO(
+                    assignment.getAssignmentId(),
+                    assignment.getTitle(),
+                    assignment.getDueDate(), 
+                    assignment.getSection().getCourse().getCourseId(),
+                    assignment.getSection().getSecId(),
+                    score
+            ));
+        }
+        return assignmentDTOs;
     }
 
 }
