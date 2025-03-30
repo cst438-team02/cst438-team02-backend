@@ -1,0 +1,6 @@
+com\cst438\test\EnrollmentControllerUnitTest.class
+com\cst438\controller\SectionControllerSystemTest.class
+com\cst438\controller\SectionControllerUnitTest.class
+com\cst438\test\utils\TestUtils.class
+com\cst438\test\StudentEnrollmentSystemTest$ELEMENT_IDS.class
+com\cst438\test\StudentEnrollmentSystemTest.class
