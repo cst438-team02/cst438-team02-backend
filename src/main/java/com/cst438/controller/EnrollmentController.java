@@ -1,15 +1,5 @@
 package com.cst438.controller;
 
-<<<<<<< Updated upstream
-
-import com.cst438.dto.EnrollmentDTO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-=======
->>>>>>> Stashed changes
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +23,8 @@ import com.cst438.dto.ErrorResponse;
 @CrossOrigin(origins = "http://localhost:3000")
 public class EnrollmentController {
 
+    @Autowired
+    EnrollmentRepository enrollmentRepository;
 
     /**
      instructor gets list of enrollments for a section
@@ -40,16 +32,6 @@ public class EnrollmentController {
      logged in user must be the instructor for the section (assignment 7)
      */
     @GetMapping("/sections/{sectionNo}/enrollments")
-<<<<<<< Updated upstream
-    public List<EnrollmentDTO> getEnrollments(
-            @PathVariable("sectionNo") int sectionNo ) {
-
-        // TODO
-		//  hint: use enrollment repository findEnrollmentsBySectionNoOrderByStudentName method
-        //  remove the following line when done
-
-        return null;
-=======
     public ResponseEntity<?> getEnrollments(
         @PathVariable("sectionNo") int sectionNo ) {
         try {
@@ -82,7 +64,6 @@ public class EnrollmentController {
             // In case of error, respond with an ErrorResponse also wrapped in ResponseEntity.ok()
             return ResponseEntity.ok(new ErrorResponse("An error occurred: " + e.getMessage()));
         }
->>>>>>> Stashed changes
     }
 
     // instructor uploads enrollments with the final grades for the section
@@ -94,13 +75,19 @@ public class EnrollmentController {
      */
     @PutMapping("/enrollments")
     public void updateEnrollmentGrade(@RequestBody List<EnrollmentDTO> dlist) {
-
-        // TODO
-
-        // For each EnrollmentDTO in the list
-        //  find the Enrollment entity using enrollmentId
-        //  update the grade and save back to database
-
+        // for each EnrollmentDTO in the list
+        for (EnrollmentDTO eDTO : dlist) {
+            //  find the Enrollment entity using enrollmentId
+            Enrollment e = enrollmentRepository.findById(eDTO.enrollmentId()).orElse(null);
+            // if Enrollment entity not found, return not found error
+            if (e==null) {
+                throw  new ResponseStatusException( HttpStatus.NOT_FOUND, "enrollment not found "+eDTO.enrollmentId());
+            }
+            //  update the grade and save back to database
+            else {
+                e.setGrade(eDTO.grade());
+                enrollmentRepository.save(e);
+            }
+        }
     }
-
 }
