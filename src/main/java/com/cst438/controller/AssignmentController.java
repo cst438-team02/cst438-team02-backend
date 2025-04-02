@@ -70,6 +70,15 @@ public class AssignmentController {
 
         Section section = sectionOpt.get();
 
+        // check if due date for assignment is after the end date of the term
+        Term term = section.getTerm(); // Get the term associated with the section
+        // convert due date to due date
+        Date dueDate = dto.dueDate() != null ? Date.valueOf(dto.dueDate()) : null;
+        // check if the assignment due date is after the term's end date
+        if (dueDate != null && dueDate.after(term.getEndDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assignment due date cannot be after the term end date.");
+        }
+
         Assignment newAssignment = new Assignment();
         newAssignment.setTitle(dto.title());
         newAssignment.setDueDate(dto.dueDate() != null ? Date.valueOf(dto.dueDate()) : null);
