@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Cst438Assignment2Main",
+            "request": "launch",
+            "mainClass": "com.cst438.Cst438Assignment2Main",
+            "projectName": ""
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot App",
+            "request": "launch",
+            "mainClass": "com.cst438.Cst438Assignment2Main",
+            "projectName": "Assignment2",
+            "vmArgs": "-Dspring.profiles.active=default",
+            "env": {
+                "SPRING_OUTPUT_ANSI_ENABLED": "always"
+            },
+            "classPaths": [
+                "${workspaceFolder}/target/classes",
+                "${workspaceFolder}/target/dependency/*"
+            ]
+        }
+    ]
+}
