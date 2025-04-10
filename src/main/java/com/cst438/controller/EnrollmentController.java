@@ -18,6 +18,7 @@ import com.cst438.domain.EnrollmentRepository;
 import com.cst438.dto.EnrollmentDTO;
 import org.springframework.http.ResponseEntity;
 import com.cst438.dto.ErrorResponse;
+import com.cst438.service.GradebookServiceProxy;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -25,6 +26,9 @@ public class EnrollmentController {
 
     @Autowired
     EnrollmentRepository enrollmentRepository;
+
+    @Autowired
+    GradebookServiceProxy gradebookServiceProxy;
 
     /**
      instructor gets list of enrollments for a section
@@ -87,6 +91,9 @@ public class EnrollmentController {
             else {
                 e.setGrade(eDTO.grade());
                 enrollmentRepository.save(e);
+
+                // Registrar Message
+                gradebookServiceProxy.sendMessage("updateEnrollmentGrade", e);
             }
         }
     }
