@@ -23,6 +23,9 @@ public class StudentScheduleController {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    com.cst438.service.GradebookServiceProxy gradebookServiceProxy;
+
     /**
      students lists their transcript containing all enrollments
      returns list of enrollments in chronological order
@@ -104,6 +107,24 @@ public class StudentScheduleController {
         enrollment.setStudent(student);
         enrollment.setSection(s);
         enrollmentRepository.save(enrollment);
+        // Send addEnrollment message to gradebook service
+        gradebookServiceProxy.addEnrollment(new EnrollmentDTO(
+            enrollment.getEnrollmentId(),
+            enrollment.getGrade(),
+            enrollment.getStudent().getId(),
+            enrollment.getStudent().getName(),
+            enrollment.getStudent().getEmail(),
+            enrollment.getSection().getCourse().getCourseId(),
+            enrollment.getSection().getCourse().getTitle(),
+            enrollment.getSection().getSecId(),
+            enrollment.getSection().getSectionNo(),
+            enrollment.getSection().getBuilding(),
+            enrollment.getSection().getRoom(),
+            enrollment.getSection().getTimes(),
+            enrollment.getSection().getCourse().getCredits(),
+            enrollment.getSection().getTerm().getYear(),
+            enrollment.getSection().getTerm().getSemester()
+        ));
 
 
         // return enrollment DTO
@@ -150,6 +171,8 @@ public class StudentScheduleController {
 
         // delete enrollment
         enrollmentRepository.delete(e);
+        // Send deleteEnrollment message to gradebook service
+        gradebookServiceProxy.deleteEnrollment(String.valueOf(enrollmentId));
     }
 
 

@@ -25,6 +25,8 @@ public class SectionController {
 
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    com.cst438.service.GradebookServiceProxy gradebookServiceProxy;
 
 
     // ADMIN function to create a new section
@@ -61,6 +63,20 @@ public class SectionController {
         }
 
         sectionRepository.save(s);
+        // Send addSection message to gradebook service
+        gradebookServiceProxy.addSection(new SectionDTO(
+            s.getSectionNo(),
+            s.getTerm().getYear(),
+            s.getTerm().getSemester(),
+            s.getCourse().getCourseId(),
+            s.getCourse().getTitle(),
+            s.getSecId(),
+            s.getBuilding(),
+            s.getRoom(),
+            s.getTimes(),
+            (instructor!=null) ? instructor.getName() : "",
+            (instructor!=null) ? instructor.getEmail() : ""
+        ));
         return new SectionDTO(
                 s.getSectionNo(),
                 s.getTerm().getYear(),
@@ -100,6 +116,20 @@ public class SectionController {
             s.setInstructor_email(section.instructorEmail());
         }
         sectionRepository.save(s);
+        // Send updateSection message to gradebook service
+        gradebookServiceProxy.updateSection(new SectionDTO(
+            s.getSectionNo(),
+            s.getTerm().getYear(),
+            s.getTerm().getSemester(),
+            s.getCourse().getCourseId(),
+            s.getCourse().getTitle(),
+            s.getSecId(),
+            s.getBuilding(),
+            s.getRoom(),
+            s.getTimes(),
+            (instructor!=null) ? instructor.getName() : "",
+            (instructor!=null) ? instructor.getEmail() : ""
+        ));
     }
 
     // ADMIN function to create a delete section
@@ -109,6 +139,8 @@ public class SectionController {
         Section s = sectionRepository.findById(sectionno).orElse(null);
         if (s != null) {
             sectionRepository.delete(s);
+            // Send deleteSection message to gradebook service
+            gradebookServiceProxy.deleteSection(String.valueOf(sectionno));
         }
     }
 
@@ -153,37 +185,7 @@ public class SectionController {
 
     // get Sections for an instructor
     // example URL  /sections?instructorEmail=dwisneski@csumb.edu&year=2024&semester=Spring
-    @GetMapping("/sections")
-    public List<SectionDTO> getSectionsForInstructor(
-            @RequestParam("email") String instructorEmail,
-            @RequestParam("year") int year ,
-            @RequestParam("semester") String semester )  {
-
-
-        List<Section> sections = sectionRepository.findByInstructorEmailAndYearAndSemester(instructorEmail, year, semester);
-
-        List<SectionDTO> dto_list = new ArrayList<>();
-        for (Section s : sections) {
-            User instructor = null;
-            if (s.getInstructorEmail()!=null) {
-                instructor = userRepository.findByEmail(s.getInstructorEmail());
-            }
-            dto_list.add(new SectionDTO(
-                    s.getSectionNo(),
-                    s.getTerm().getYear(),
-                    s.getTerm().getSemester(),
-                    s.getCourse().getCourseId(),
-		    s.getCourse().getTitle(),
-                    s.getSecId(),
-                    s.getBuilding(),
-                    s.getRoom(),
-                    s.getTimes(),
-                    (instructor!=null) ? instructor.getName() : "",
-                    (instructor!=null) ? instructor.getEmail() : ""
-            ));
-        }
-        return dto_list;
-    }
+    // getSectionsForInstructor endpoint removed to meet assignment requirements
 
     // return sections that are related to the term where today's date is between
     // the add_date and the add_deadline of the term

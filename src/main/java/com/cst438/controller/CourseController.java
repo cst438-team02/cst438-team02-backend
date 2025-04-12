@@ -33,6 +33,8 @@ public class CourseController {
 
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    com.cst438.service.GradebookServiceProxy gradebookServiceProxy;
 
 
     // ADMIN function to create a new course
@@ -43,6 +45,12 @@ public class CourseController {
         c.setTitle(course.title());
         c.setCourseId(course.courseId());
         courseRepository.save(c);
+        // Send addCourse message to gradebook service
+        gradebookServiceProxy.addCourse(new CourseDTO(
+            c.getCourseId(),
+            c.getTitle(),
+            c.getCredits()
+        ));
         return new CourseDTO(
                 c.getCourseId(),
                 c.getTitle(),
@@ -60,10 +68,16 @@ public class CourseController {
             c.setTitle(course.title());
             c.setCredits(course.credits());
             courseRepository.save(c);
+            // Send updateCourse message to gradebook service
+            gradebookServiceProxy.updateCourse(new CourseDTO(
+                c.getCourseId(),
+                c.getTitle(),
+                c.getCredits()
+            ));
             return new CourseDTO(
-                    c.getCourseId(),
-                    c.getTitle(),
-                    c.getCredits()
+                c.getCourseId(),
+                c.getTitle(),
+                c.getCredits()
             );
         }
     }
@@ -76,6 +90,8 @@ public class CourseController {
         // if course does not exist, do nothing.
         if (c!=null) {
             courseRepository.delete(c);
+            // Send deleteCourse message to gradebook service
+            gradebookServiceProxy.deleteCourse(courseid);
         }
     }
 

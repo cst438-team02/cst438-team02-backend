@@ -1,13 +1,17 @@
 package com.cst438.controller;
 
-import com.cst438.domain.*;
-import com.cst438.dto.AssignmentStudentDTO;
-import com.cst438.dto.EnrollmentDTO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cst438.domain.Enrollment;
+import com.cst438.domain.EnrollmentRepository;
+import com.cst438.dto.EnrollmentDTO;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -16,11 +20,7 @@ public class StudentController {
     @Autowired
     private EnrollmentRepository enrollmentRepository;
 
-    @Autowired
-    private AssignmentRepository assignmentRepository;
-
-    @Autowired
-    private GradeRepository gradeRepository;
+    // AssignmentRepository and GradeRepository removed (Assignment/Grade deleted)
 
     /**
      students lists there enrollments given year and semester value
@@ -66,30 +66,6 @@ public class StudentController {
      returns list of assignments may be empty
      logged in user must be the student (assignment 7)
      */
-    @GetMapping("/assignments")
-    public List<AssignmentStudentDTO> getStudentAssignments(
-            @RequestParam("studentId") int studentId,
-            @RequestParam("year") int year,
-            @RequestParam("semester") String semester) {
-
-        List<Assignment> assignments = assignmentRepository.findByStudentIdAndYearAndSemesterOrderByDueDate(studentId, year, semester);
-        List<AssignmentStudentDTO> assignmentDTOs = new ArrayList<>();
-
-        for (Assignment assignment : assignments) {
-            Grade grade = gradeRepository.findByEnrollmentIdAndAssignmentId(
-                    assignment.getSection().getSectionNo(), assignment.getAssignmentId());
-            Integer score = (grade != null) ? grade.getScore() : null;
-
-            assignmentDTOs.add(new AssignmentStudentDTO(
-                    assignment.getAssignmentId(),
-                    assignment.getTitle(),
-                    assignment.getDueDate(), 
-                    assignment.getSection().getCourse().getCourseId(),
-                    assignment.getSection().getSecId(),
-                    score
-            ));
-        }
-        return assignmentDTOs;
-    }
+    // getStudentAssignments method removed (Assignment/Grade deleted)
 
 }
