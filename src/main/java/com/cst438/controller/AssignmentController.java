@@ -2,6 +2,9 @@ package com.cst438.controller;
 
 import com.cst438.domain.*;
 import com.cst438.dto.AssignmentDTO;
+import com.cst438.dto.CourseDTO;
+import com.cst438.dto.SectionDTO;
+import com.cst438.service.GradebookServiceProxy;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,12 @@ public class AssignmentController {
 
     @Autowired
     private SectionRepository sectionRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    GradebookServiceProxy gradebookServiceProxy;
 
     /**
      instructor lists assignments for a section.
@@ -108,6 +117,16 @@ public class AssignmentController {
         assignment = assignmentRepository.save(assignment);
 
         Section section = assignment.getSection();
+
+        // Send updateAssignment to registrar service
+        gradebookServiceProxy.updateAssignment(new AssignmentDTO(
+                assignment.getAssignmentId(),
+                assignment.getTitle(),
+                assignment.getDueDate() != null ? assignment.getDueDate().toString() : null,
+                section.getCourse().getCourseId(),
+                section.getSecId(),
+                section.getSectionNo()
+        ));
         return new AssignmentDTO(
                 assignment.getAssignmentId(),
                 assignment.getTitle(),
@@ -131,4 +150,41 @@ public class AssignmentController {
 
         assignmentRepository.deleteById(assignmentId);
     }
+
+
+    // ==== Moved from SectionController ====
+    // get Sections for an instructor
+    // example URL  /sections?instructorEmail=dwisneski@csumb.edu&year=2024&semester=Spring
+    @GetMapping("/sections")
+    public List<SectionDTO> getSectionsForInstructor(
+            @RequestParam("email") String instructorEmail,
+            @RequestParam("year") int year ,
+            @RequestParam("semester") String semester )  {
+
+        System.out.println("Fetching Sections");
+        List<Section> sections = sectionRepository.findByInstructorEmailAndYearAndSemester(instructorEmail, year, semester);
+
+        List<SectionDTO> dto_list = new ArrayList<>();
+        for (Section s : sections) {
+            User instructor = null;
+            if (s.getInstructorEmail()!=null) {
+                instructor = userRepository.findByEmail(s.getInstructorEmail());
+            }
+            dto_list.add(new SectionDTO(
+                    s.getSectionNo(),
+                    s.getTerm().getYear(),
+                    s.getTerm().getSemester(),
+                    s.getCourse().getCourseId(),
+                    s.getCourse().getTitle(),
+                    s.getSecId(),
+                    s.getBuilding(),
+                    s.getRoom(),
+                    s.getTimes(),
+                    (instructor!=null) ? instructor.getName() : "",
+                    (instructor!=null) ? instructor.getEmail() : ""
+            ));
+        }
+        return dto_list;
+    }
+
 }

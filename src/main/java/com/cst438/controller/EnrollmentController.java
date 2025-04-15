@@ -92,8 +92,8 @@ public class EnrollmentController {
                 e.setGrade(eDTO.grade());
                 enrollmentRepository.save(e);
 
-                // Registrar Message
-                gradebookServiceProxy.sendMessage("updateEnrollmentGrade", e);
+                // pass to proxy
+                gradebookServiceProxy.updateEnrollment(eDTO);
             }
         }
     }

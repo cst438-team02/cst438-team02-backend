@@ -1,11 +1,13 @@
 package com.cst438.controller;
 
+import com.cst438.service.GradebookServiceProxy;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,6 +23,8 @@ import com.cst438.domain.Grade;
 import com.cst438.domain.GradeRepository;
 import com.cst438.dto.GradeDTO;
 
+
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class GradeController {
 
@@ -32,6 +36,9 @@ public class GradeController {
 
     @Autowired
     private EnrollmentRepository enrollmentRepository;
+
+    @Autowired
+    GradebookServiceProxy gradebookServiceProxy;
 
     /**
      * Instructor lists the grades for an assignment for all enrolled students.
@@ -96,6 +103,8 @@ public class GradeController {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grade not found for ID " + gd.gradeId()));
             // update the score
             grade.setScore(gd.score());
+            // send message to proxy
+            gradebookServiceProxy.updateGrade(gd);
             gradeRepository.save(grade);
         }
     }
