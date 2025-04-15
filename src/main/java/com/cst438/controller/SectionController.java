@@ -2,6 +2,7 @@ package com.cst438.controller;
 
 import com.cst438.domain.*;
 import com.cst438.dto.SectionDTO;
+import com.cst438.service.RegistrarServiceProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +26,9 @@ public class SectionController {
 
     @Autowired
     UserRepository userRepository;
+
     @Autowired
-    com.cst438.service.GradebookServiceProxy gradebookServiceProxy;
+    private RegistrarServiceProxy registrarServiceProxy;
 
 
     // ADMIN function to create a new section
@@ -64,7 +66,7 @@ public class SectionController {
 
         sectionRepository.save(s);
         // Send addSection message to gradebook service
-        gradebookServiceProxy.addSection(new SectionDTO(
+        registrarServiceProxy.addSection(new SectionDTO(
             s.getSectionNo(),
             s.getTerm().getYear(),
             s.getTerm().getSemester(),
@@ -117,7 +119,7 @@ public class SectionController {
         }
         sectionRepository.save(s);
         // Send updateSection message to gradebook service
-        gradebookServiceProxy.updateSection(new SectionDTO(
+        registrarServiceProxy.updateSection(new SectionDTO(
             s.getSectionNo(),
             s.getTerm().getYear(),
             s.getTerm().getSemester(),
@@ -140,7 +142,7 @@ public class SectionController {
         if (s != null) {
             sectionRepository.delete(s);
             // Send deleteSection message to gradebook service
-            gradebookServiceProxy.deleteSection(String.valueOf(sectionno));
+            registrarServiceProxy.deleteSection(String.valueOf(sectionno));
         }
     }
 

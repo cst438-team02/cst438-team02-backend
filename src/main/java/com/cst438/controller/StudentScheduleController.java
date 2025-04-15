@@ -2,6 +2,7 @@ package com.cst438.controller;
 
 import com.cst438.domain.*;
 import com.cst438.dto.EnrollmentDTO;
+import com.cst438.service.RegistrarServiceProxy;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class StudentScheduleController {
     UserRepository userRepository;
 
     @Autowired
-    com.cst438.service.GradebookServiceProxy gradebookServiceProxy;
+    private RegistrarServiceProxy registrarServiceProxy;
 
     /**
      students lists their transcript containing all enrollments
@@ -108,7 +109,7 @@ public class StudentScheduleController {
         enrollment.setSection(s);
         enrollmentRepository.save(enrollment);
         // Send addEnrollment message to gradebook service
-        gradebookServiceProxy.addEnrollment(new EnrollmentDTO(
+        registrarServiceProxy.addEnrollment(new EnrollmentDTO(
             enrollment.getEnrollmentId(),
             enrollment.getGrade(),
             enrollment.getStudent().getId(),
@@ -172,7 +173,7 @@ public class StudentScheduleController {
         // delete enrollment
         enrollmentRepository.delete(e);
         // Send deleteEnrollment message to gradebook service
-        gradebookServiceProxy.deleteEnrollment(String.valueOf(enrollmentId));
+        registrarServiceProxy.deleteEnrollment(String.valueOf(enrollmentId));
     }
 
 

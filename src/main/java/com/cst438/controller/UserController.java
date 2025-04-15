@@ -3,6 +3,7 @@ package com.cst438.controller;
 import com.cst438.domain.User;
 import com.cst438.domain.UserRepository;
 import com.cst438.dto.UserDTO;
+import com.cst438.service.RegistrarServiceProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class UserController {
     UserRepository userRepository;
 
     @Autowired
-    com.cst438.service.GradebookServiceProxy gradebookServiceProxy;
+    private RegistrarServiceProxy registrarServiceProxy;
 
     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -62,7 +63,7 @@ public class UserController {
         }
         userRepository.save(user);
         // Send addUser message to gradebook service
-        gradebookServiceProxy.addUser(new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getType()));
+        registrarServiceProxy.addUser(new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getType()));
         return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getType());
     }
 
@@ -86,7 +87,7 @@ public class UserController {
         }
         userRepository.save(user);
         // Send updateUser message to gradebook service
-        gradebookServiceProxy.updateUser(new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getType()));
+        registrarServiceProxy.updateUser(new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getType()));
         return new UserDTO(user.getId(), user.getName(), user.getEmail(), user.getType());
     }
 
@@ -99,7 +100,7 @@ public class UserController {
         if (user!=null) {
             userRepository.delete(user);
             // Send deleteUser message to gradebook service
-            gradebookServiceProxy.deleteUser(String.valueOf(id));
+            registrarServiceProxy.deleteUser(String.valueOf(id));
         }
 
     }

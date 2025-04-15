@@ -3,6 +3,7 @@ package com.cst438.controller;
 import com.cst438.domain.*;
 import com.cst438.dto.CourseDTO;
 import com.cst438.dto.SectionDTO;
+import com.cst438.service.RegistrarServiceProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -33,8 +34,9 @@ public class CourseController {
 
     @Autowired
     UserRepository userRepository;
+
     @Autowired
-    com.cst438.service.GradebookServiceProxy gradebookServiceProxy;
+    private RegistrarServiceProxy registrarServiceProxy;
 
 
     // ADMIN function to create a new course
@@ -46,7 +48,7 @@ public class CourseController {
         c.setCourseId(course.courseId());
         courseRepository.save(c);
         // Send addCourse message to gradebook service
-        gradebookServiceProxy.addCourse(new CourseDTO(
+        registrarServiceProxy.addCourse(new CourseDTO(
             c.getCourseId(),
             c.getTitle(),
             c.getCredits()
@@ -69,7 +71,7 @@ public class CourseController {
             c.setCredits(course.credits());
             courseRepository.save(c);
             // Send updateCourse message to gradebook service
-            gradebookServiceProxy.updateCourse(new CourseDTO(
+            registrarServiceProxy.updateCourse(new CourseDTO(
                 c.getCourseId(),
                 c.getTitle(),
                 c.getCredits()
@@ -91,7 +93,7 @@ public class CourseController {
         if (c!=null) {
             courseRepository.delete(c);
             // Send deleteCourse message to gradebook service
-            gradebookServiceProxy.deleteCourse(courseid);
+            registrarServiceProxy.deleteCourse(courseid);
         }
     }
 

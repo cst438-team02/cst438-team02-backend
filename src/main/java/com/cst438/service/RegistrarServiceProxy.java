@@ -1,6 +1,10 @@
 package com.cst438.service;
 
+import com.cst438.domain.Grade;
+import com.cst438.domain.GradeRepository;
+import com.cst438.dto.AssignmentDTO;
 import com.cst438.dto.CourseDTO;
+import com.cst438.dto.GradeDTO;
 import com.cst438.dto.SectionDTO;
 import com.cst438.dto.UserDTO;
 import com.cst438.dto.EnrollmentDTO;
@@ -15,7 +19,10 @@ import com.cst438.domain.Enrollment;
 import com.cst438.domain.EnrollmentRepository;
 import com.cst438.domain.Term;
 import com.cst438.domain.TermRepository;
+import com.cst438.domain.Assignment;
+import com.cst438.domain.AssignmentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.Date;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -27,10 +34,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class RegistrarServiceProxy {
 
-    @Value("${gradebook.queue}")
+    @Value("gradebook_service")
     private String gradebookQueueName;
 
-    @Value("${registrar.queue}")
+    @Value("registrar_service")
     private String registrarQueueName;
 
     @Autowired
@@ -50,6 +57,12 @@ public class RegistrarServiceProxy {
 
     @Autowired
     private TermRepository termRepository;
+
+    @Autowired
+    private AssignmentRepository assignmentRepository;
+
+    @Autowired
+    private GradeRepository gradeRepository;
 
     @Bean
     public Queue registrarQueue() {
@@ -109,6 +122,7 @@ public class RegistrarServiceProxy {
     }
 
     private void send(String msg) {
+        System.out.println("Sending " + msg);
         try {
             rabbitTemplate.convertAndSend(gradebookQueueName, msg);
         } catch (Exception e) {
@@ -118,6 +132,7 @@ public class RegistrarServiceProxy {
 
     @RabbitListener(queues = "${registrar.queue}")
     public void receive(String msg) {
+        System.out.println("Receiving " + msg);
         try {
             String[] parts = msg.split(" ", 2);
             String action = parts[0];
@@ -152,7 +167,7 @@ public class RegistrarServiceProxy {
                 sectionRepository.save(s);
             } else if (action.equals("updateSection")) {
                 SectionDTO dto = fromJsonString(parts[1], SectionDTO.class);
-                Section s = sectionRepository.findById(dto.secId()).orElseThrow();
+                Section s = sectionRepository.findById(dto.secNo()).orElseThrow();
                 s.setBuilding(dto.building());
                 s.setRoom(dto.room());
                 s.setTimes(dto.times());
@@ -190,7 +205,7 @@ public class RegistrarServiceProxy {
                 // Look up User and Section
                 User student = userRepository.findById(dto.studentId()).orElse(null);
                 if (student != null) e.setStudent(student);
-                Section section = sectionRepository.findById(dto.sectionId()).orElse(null);
+                Section section = sectionRepository.findById(dto.sectionNo()).orElse(null);
                 if (section != null) e.setSection(section);
                 enrollmentRepository.save(e);
             } else if (action.equals("updateEnrollment")) {
@@ -200,7 +215,7 @@ public class RegistrarServiceProxy {
                 // Look up User and Section
                 User student = userRepository.findById(dto.studentId()).orElse(null);
                 if (student != null) e.setStudent(student);
-                Section section = sectionRepository.findById(dto.sectionId()).orElse(null);
+                Section section = sectionRepository.findById(dto.sectionNo()).orElse(null);
                 if (section != null) e.setSection(section);
                 enrollmentRepository.save(e);
             } else if (action.equals("deleteEnrollment")) {
@@ -210,6 +225,32 @@ public class RegistrarServiceProxy {
                 Enrollment e = enrollmentRepository.findById(dto.enrollmentId()).orElseThrow();
                 e.setGrade(dto.finalGrade());
                 enrollmentRepository.save(e);
+            } else if (action.equals("addAssignment")) {
+                AssignmentDTO dto = fromJsonString(parts[1], AssignmentDTO.class);
+                Assignment a = new Assignment();
+                Section section = sectionRepository.findById(dto.secNo()).orElse(null);
+                if (section != null) a.setSection(section);
+                a.setAssignmentId(dto.id());
+                a.setDueDate(dto.dueDate() != null ? Date.valueOf(dto.dueDate()) : null);
+                a.setSection(section);
+                a.setTitle(dto.title());
+                assignmentRepository.save(a);
+            } else if (action.equals("updateAssignment")) {
+                AssignmentDTO dto = fromJsonString(parts[1], AssignmentDTO.class);
+                Assignment a = assignmentRepository.findById(dto.id()).orElseThrow();
+                Section section = sectionRepository.findById(dto.secNo()).orElse(null);
+                if (section != null) a.setSection(section);
+                a.setDueDate(dto.dueDate() != null ? Date.valueOf(dto.dueDate()) : null);
+                a.setTitle(dto.title());
+                a.setSection(section);
+                assignmentRepository.save(a);
+            } else if (action.equals("deleteAssignment")) {
+                assignmentRepository.deleteById(Integer.parseInt(parts[1]));
+            } else if (action.equals("updateGrade")) {
+                GradeDTO dto = fromJsonString(parts[1], GradeDTO.class);
+                Grade g = gradeRepository.findById(dto.gradeId()).orElseThrow();
+                g.setScore(dto.score());
+                gradeRepository.save(g);
             }
         } catch (Exception ex) {
             // Swallow exception to prevent infinite redelivery
