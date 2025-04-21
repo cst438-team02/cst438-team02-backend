@@ -1,4 +1,5 @@
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\controller\StudentController.java
+C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\SecurityConfiguration.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\GradeRepository.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\controller\SectionController.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\AssignmentRepository.java
@@ -9,6 +10,7 @@ C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\ja
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\controller\EnrollmentController.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\Assignment.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\dto\UserDTO.java
+C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\service\UserDetailsServiceImpl.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\dto\AssignmentDTO.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\dto\AssignmentStudentDTO.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\Cst438Assignment2Main.java
@@ -16,6 +18,7 @@ C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\ja
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\Term.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\SectionRepository.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\dto\SectionDTO.java
+C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\RsaKeyProperties.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\controller\CourseController.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\dto\EnrollmentDTO.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\Grade.java
@@ -26,6 +29,9 @@ C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\ja
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\controller\UserController.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\Course.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\CourseRepository.java
+C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\controller\LoginController.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\Section.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\domain\UserRepository.java
+C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\dto\LoginDTO.java
+C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\service\TokenService.java
 C:\Users\ADMIN\Documents\School\CST438\Project\cst438-team02-backend\src\main\java\com\cst438\dto\GradeDTO.java

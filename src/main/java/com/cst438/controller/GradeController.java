@@ -1,11 +1,14 @@
 package com.cst438.controller;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,6 +25,7 @@ import com.cst438.domain.GradeRepository;
 import com.cst438.dto.GradeDTO;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 public class GradeController {
 
     @Autowired
@@ -40,12 +44,22 @@ public class GradeController {
      * (assignment, enrollment) pair, one is created with a null score.
      */
     @GetMapping("/assignments/{assignmentId}/grades")
-    public List<GradeDTO> getAssignmentGrades(@PathVariable("assignmentId") int assignmentId) {
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_INSTRUCTOR')")
+    public List<GradeDTO> getAssignmentGrades(
+            @PathVariable("assignmentId") int assignmentId,
+            Principal principal) {
 
         // find assignment
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.BAD_REQUEST, "Assignment not found."));
+        
+        // Verify instructor is assigned to this section
+        String instructorEmail = principal.getName();
+        if (!assignment.getSection().getInstructorEmail().equals(instructorEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Not authorized to access grades for this assignment");
+        }
 
         // get the section number from assignment
         int sectionNo = assignment.getSection().getSectionNo();
@@ -89,11 +103,24 @@ public class GradeController {
      * can be changed.
      */
     @PutMapping("/grades")
-    public void updateGrades(@RequestBody List<GradeDTO> dlist) {
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_INSTRUCTOR')")
+    public void updateGrades(
+            @RequestBody List<GradeDTO> dlist,
+            Principal principal) {
+        
+        String instructorEmail = principal.getName();
+        
         for (GradeDTO gd : dlist) {
             // find the grade entity
             Grade grade = gradeRepository.findById(gd.gradeId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grade not found for ID " + gd.gradeId()));
+            
+            // Verify instructor is assigned to this section
+            if (!grade.getAssignment().getSection().getInstructorEmail().equals(instructorEmail)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Not authorized to update this grade");
+            }
+            
             // update the score
             grade.setScore(gd.score());
             gradeRepository.save(grade);

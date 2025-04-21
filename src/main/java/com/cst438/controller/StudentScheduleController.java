@@ -1,17 +1,31 @@
 package com.cst438.controller;
 
-import com.cst438.domain.*;
-import com.cst438.dto.EnrollmentDTO;
+import java.security.Principal;
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.sql.Date;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.cst438.domain.Enrollment;
+import com.cst438.domain.EnrollmentRepository;
+import com.cst438.domain.Section;
+import com.cst438.domain.SectionRepository;
+import com.cst438.domain.User;
+import com.cst438.domain.UserRepository;
+import com.cst438.dto.EnrollmentDTO;
+
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 public class StudentScheduleController {
 
     @Autowired
@@ -30,10 +44,18 @@ public class StudentScheduleController {
      example URL  /transcript?studentId=19803
      */
     @GetMapping("/transcripts")
-    public List<EnrollmentDTO> getTranscript(@RequestParam("studentId") int studentId) {
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_STUDENT')")
+    public List<EnrollmentDTO> getTranscript(Principal principal) {
 
-        // TODO
-
+        // Get student ID from principal
+        String studentEmail = principal.getName();
+        User student = userRepository.findByEmail(studentEmail);
+        if (student == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found");
+        }
+        
+        int studentId = student.getId();
+        
         // list course_id, sec_id, title, credit, grade
         // use enrollment repository method findEnrollmentsByStudentIdOrderByTermId
         List<Enrollment> enrollments = enrollmentRepository.findEnrollmentsByStudentIdOrderByTermId(studentId);
@@ -67,28 +89,32 @@ public class StudentScheduleController {
      logged in user must be the student (assignment 7)
      */
     @PostMapping("/enrollments/sections/{sectionNo}")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_STUDENT')")
     public EnrollmentDTO addCourse(
             @PathVariable int sectionNo,
-            @RequestParam("studentId") int studentId ) {
+            Principal principal) {
+
+        // Get student from principal
+        String studentEmail = principal.getName();
+        User student = userRepository.findByEmail(studentEmail);
+        if (student == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found");
+        }
+        
+        int studentId = student.getId();
 
         // check that the Section entity with primary key sectionNo exists
         Section s = sectionRepository.findById(sectionNo).orElse(null);
         if (s==null) {
-            throw  new ResponseStatusException( HttpStatus.NOT_FOUND, "section not found "+sectionNo);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "section not found "+sectionNo);
         }
 
         // check that today is between addDate and addDeadline for the section
         Date today = new Date(System.currentTimeMillis());
         // if not between addDate and addDeadline
         if (today.compareTo(s.getTerm().getAddDate()) < 0 || today.compareTo(s.getTerm().getAddDeadline()) > 0) {
-            throw  new ResponseStatusException( HttpStatus.BAD_REQUEST, "today not between: "+
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "today not between: "+
                     s.getTerm().getAddDate()+" and "+s.getTerm().getAddDeadline());
-        }
-
-        // get student (for use in the else block later)
-        User student = userRepository.findById(studentId).orElse(null);
-        if (student == null) {
-            throw  new ResponseStatusException( HttpStatus.NOT_FOUND, "student not found "+studentId);
         }
 
         // check that student is not already enrolled into this section
@@ -132,13 +158,29 @@ public class StudentScheduleController {
      logged in user must be the student (assignment 7)
      */
     @DeleteMapping("/enrollments/{enrollmentId}")
-    public void dropCourse(@PathVariable("enrollmentId") int enrollmentId) {
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_STUDENT')")
+    public void dropCourse(
+            @PathVariable("enrollmentId") int enrollmentId,
+            Principal principal) {
 
+        // Get student from principal
+        String studentEmail = principal.getName();
+        User student = userRepository.findByEmail(studentEmail);
+        if (student == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found");
+        }
+        
         // get the enrollment
         Enrollment e = enrollmentRepository.findById(enrollmentId).orElse(null);
         if (e == null) {
             // if enrollment doesn't exist, do nothing
             return;
+        }
+        
+        // Verify the enrollment belongs to the student
+        if (e.getStudent().getId() != student.getId()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "Not authorized to drop this enrollment");
         }
 
         // check that today is not after the dropDeadline for section

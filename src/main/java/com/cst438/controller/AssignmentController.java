@@ -5,9 +5,10 @@ import com.cst438.dto.AssignmentDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.server.ResponseStatusException;
 
-
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.Date;
@@ -22,6 +23,9 @@ public class AssignmentController {
 
     @Autowired
     private SectionRepository sectionRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      instructor lists assignments for a section.
@@ -29,12 +33,25 @@ public class AssignmentController {
      logged in user must be the instructor for the section (assignment 7)
      */
     @GetMapping("/sections/{secNo}/assignments")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_INSTRUCTOR')")
     public List<AssignmentDTO> getAssignments(
-            @PathVariable("secNo") int secNo) {
-		
-		// hint: use the assignment repository method 
-		//  findBySectionNoOrderByDueDate to return 
-		//  a list of assignments
+            @PathVariable("secNo") int secNo,
+            Principal principal) {
+        
+        // Verify instructor is assigned to this section
+        String instructorEmail = principal.getName();
+        Section section = sectionRepository.findById(secNo).orElse(null);
+        if (section == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Section not found");
+        }
+        
+        if (!section.getInstructorEmail().equals(instructorEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to access this section's assignments");
+        }
+  
+  // Use the assignment repository method
+  // findBySectionNoOrderByDueDate to return
+  // a list of assignments
 
         List<Assignment> assignments = assignmentRepository.findBySectionNoOrderByDueDate(secNo);
         List<AssignmentDTO> dtos = new ArrayList<>();
@@ -60,8 +77,10 @@ public class AssignmentController {
      logged in user must be the instructor for the section (assignment 7)
      */
     @PostMapping("/assignments")
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_INSTRUCTOR')")
     public AssignmentDTO createAssignment(
-            @RequestBody AssignmentDTO dto) {
+            @RequestBody AssignmentDTO dto,
+            Principal principal) {
 
         Optional<Section> sectionOpt = sectionRepository.findById(dto.secNo());
         if (sectionOpt.isEmpty()) {
@@ -69,6 +88,12 @@ public class AssignmentController {
         }
 
         Section section = sectionOpt.get();
+        
+        // Verify instructor is assigned to this section
+        String instructorEmail = principal.getName();
+        if (!section.getInstructorEmail().equals(instructorEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to create assignments for this section");
+        }
 
         // check if due date for assignment is after the end date of the term
         Term term = section.getTerm(); // Get the term associated with the section
@@ -103,7 +128,10 @@ public class AssignmentController {
      logged in user must be the instructor for the section (assignment 7)
      */
     @PutMapping("/assignments")
-    public AssignmentDTO updateAssignment(@RequestBody AssignmentDTO dto) {
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_INSTRUCTOR')")
+    public AssignmentDTO updateAssignment(
+            @RequestBody AssignmentDTO dto,
+            Principal principal) {
 
         Optional<Assignment> assignmentOpt = assignmentRepository.findById(dto.id());
         if (assignmentOpt.isEmpty()) {
@@ -111,6 +139,12 @@ public class AssignmentController {
         }
 
         Assignment assignment = assignmentOpt.get();
+        
+        // Verify instructor is assigned to this section
+        String instructorEmail = principal.getName();
+        if (!assignment.getSection().getInstructorEmail().equals(instructorEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to update this assignment");
+        }
         assignment.setTitle(dto.title());
         assignment.setDueDate(dto.dueDate() != null ? Date.valueOf(dto.dueDate()) : null);
 
@@ -132,10 +166,22 @@ public class AssignmentController {
      logged in user must be the instructor for the section (assignment 7)
      */
     @DeleteMapping("/assignments/{assignmentId}")
-    public void deleteAssignment(@PathVariable("assignmentId") int assignmentId) {
+    @PreAuthorize("hasAuthority('SCOPE_ROLE_INSTRUCTOR')")
+    public void deleteAssignment(
+            @PathVariable("assignmentId") int assignmentId,
+            Principal principal) {
 
-        if (!assignmentRepository.existsById(assignmentId)) {
+        Optional<Assignment> assignmentOpt = assignmentRepository.findById(assignmentId);
+        if (assignmentOpt.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment not found");
+        }
+        
+        Assignment assignment = assignmentOpt.get();
+        
+        // Verify instructor is assigned to this section
+        String instructorEmail = principal.getName();
+        if (!assignment.getSection().getInstructorEmail().equals(instructorEmail)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized to delete this assignment");
         }
 
         assignmentRepository.deleteById(assignmentId);
